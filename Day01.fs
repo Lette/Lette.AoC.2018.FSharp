@@ -11,28 +11,29 @@ module Day01
         yield! loop ys
     }
 
-    let part1 () = xs |> List.sum
-
     let runningSum () =
         (loop xs)
         |> Seq.scan (+) 0
 
-    let findDup (xs : int seq) =
-        let s = Set.empty
+    let findFirstDuplicate (xs : int seq) =
 
-        let folder (s, d) item =
+        let folder (s, _) item =
             if Set.contains item s then
-                (s, item :: d)
+                (s, Some item)
             else
-                (Set.add item s, d)
+                (Set.add item s, None)
 
-        Seq.scan folder (Set.empty, []) xs
-        |> Seq.find (fun (_, ds) -> not (List.isEmpty ds))
-        |> (fun (_, ds) -> ds)
-        |> List.head
+        xs
+        |> Seq.scan folder (Set.empty, None)
+        |> Seq.pick (fun (_, dup) -> dup)
+
+    let part1 () =
+        xs
+        |> List.sum
 
     let part2 () =
-        runningSum () |> findDup
+        runningSum ()
+        |> findFirstDuplicate
 
     let show () =
         printfn "Day 1:"    
