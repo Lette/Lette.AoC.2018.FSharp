@@ -5,10 +5,9 @@ module Day02
         Day02Data.d.Split Environment.NewLine
         |> Array.toList
 
-    let bleh (s : string) =
+    let characterDuplicationInfo input =
         let ks =
-            s
-            |> Seq.toList
+            input
             |> Seq.groupBy id
             |> Seq.groupBy (fun (_, v) -> Seq.length v)
             |> Seq.map (fun (k, _) -> k)
@@ -18,7 +17,7 @@ module Day02
 
     let part1 () =
         xs
-        |> List.map bleh
+        |> List.map characterDuplicationInfo
         |> List.reduce (fun (a, b) (c, d) -> (a + c, b + d))
         |> (fun (x, y) -> x * y)
 
@@ -32,11 +31,11 @@ module Day02
 
             let charPairsWithSep =
                 charPairs
-                |> List.map (fun (c1, c2) -> (c1, (int c1) - (int c2)))
+                |> List.map (fun (c1, c2) -> (c1, c1 = c2))
 
             let numberOfCharsThatDiffer =
                 charPairsWithSep
-                |> List.where (fun (_, s) -> s <> 0)
+                |> List.where (fun (_, sameChar) -> not sameChar)
                 |> List.length
 
             (numberOfCharsThatDiffer, charPairsWithSep)
@@ -44,10 +43,10 @@ module Day02
         let (_, info) =
             List.allPairs xs xs
             |> List.map (fun (s1, s2) -> separation s1 s2)
-            |> List.find (fun (s, _) -> s = 1)
+            |> List.find (fun (numberOfCharsThatDiffer, _) -> numberOfCharsThatDiffer = 1)
 
         info
-            |> List.where (fun (_, x) -> x = 0)
+            |> List.where (fun (_, same) -> same)
             |> List.map (fun (c, _) -> c)
             |> List.fold (fun acc curr -> acc + (string curr)) ""
 
