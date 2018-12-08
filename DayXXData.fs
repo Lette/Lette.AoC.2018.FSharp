@@ -1,0 +1,4 @@
+module DayXXData
+
+    let d =
+        @""
