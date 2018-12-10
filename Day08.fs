@@ -29,7 +29,7 @@ module Day08
             | nChild :: nMeta :: ys ->
                 let children, remaining = createChildren nChild [] ys
                 let metadata, remaining' = createMetadata nMeta [] remaining
-                ({ Children = children; Metadata = metadata }, remaining')
+                ({ Children = List.rev children; Metadata = List.rev metadata }, remaining')
             | _ -> failwith "child not fully built"
 
         createNode xs |> fst
@@ -40,17 +40,30 @@ module Day08
             for child in node.Children do yield! nodeToList child;
         }
 
+    let rootNode () = buildNodes xs
+
+    let rec nodeValue node =
+        match node with
+        | { Children = []; Metadata = m } -> m |> List.sum
+        | { Children = cs; Metadata = m } ->
+            m
+            |> List.map (flip (-) 1)
+            |> List.filter (fun i -> i >= 0 && i < List.length cs)
+            |> List.map (fun i -> cs |> List.item i |> nodeValue)
+            |> List.sum
+
     let part1 () =
-        buildNodes xs
+        rootNode ()
         |> nodeToList
         |> Seq.collect (fun n -> n.Metadata)
         |> Seq.sum
 
     let part2 () =
-        0
+        rootNode ()
+        |> nodeValue
 
     let show () =
         showDay
             8
             part1 (Some 40977)
-            part2 None
+            part2 (Some 27490)
