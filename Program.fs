@@ -9,7 +9,7 @@ let main argv =
     //Day06.show ()
     //Day07.show ()
     Day08.show ()
-    Day09.show ()
-    Day10.show ()
+    //Day09.show ()
+    //Day10.show ()
 
     0
