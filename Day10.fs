@@ -3,7 +3,7 @@ module Day10
     open Common
 
     let xs =
-        Day10Data.d.Split Environment.NewLine
+        Day10Data.d'.Split Environment.NewLine
         |> Array.toList
 
     let part1 () =
