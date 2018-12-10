@@ -63,19 +63,19 @@ module Day07
                 match work with
                 | Some (step, 1) -> (None               :: newWorkers, step :: finished)
                 | Some (step, n) -> (Some (step, n - 1) :: newWorkers,         finished)
-                | None           -> (None               :: newWorkers,         finished) 
+                | None           -> (None               :: newWorkers,         finished)
 
             workers |> List.fold folder ([], [])
 
         let workLength (s : string) =
-            60 + int (char (s.Substring (0, 1))) - (int 'A') + 1
+            60 + int (s |> Seq.head) - (int 'A') + 1
 
         let assignAvailableWork workers steps =
 
             let rec inner workers steps acc =
                 match workers, steps with
                 | [],           _       -> acc
-                | _,            []      -> (workers @ acc)
+                | _,            []      -> workers @ acc
                 | Some w :: ws, _       -> inner ws steps (Some w :: acc)
                 | None :: ws,   s :: ss -> inner ws ss (Some (s, workLength s) :: acc)
                 
