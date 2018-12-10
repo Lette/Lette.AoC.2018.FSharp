@@ -1,5 +1,6 @@
 module Day02
     open System
+    open Common
 
     let xs =
         Day02Data.d.Split Environment.NewLine
@@ -51,6 +52,7 @@ module Day02
             |> List.fold (fun acc curr -> acc + (string curr)) ""
 
     let show () =
-        printfn "Day 2:"
-        printfn "   Part 1: %i" (part1 ())
-        printfn "   Part 2: %s" (part2 ())
+        showDay
+            2
+            part1 (Some 6642)
+            part2 (Some "cvqlbidheyujgtrswxmckqnap")

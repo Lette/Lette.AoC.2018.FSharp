@@ -30,7 +30,7 @@ module Day06
         let folder (minDist, minDistPoints) (i, a, b) =
             let d = distance (x, y) (a, b)
             match d with
-            | minDist            -> (d, i :: minDistPoints)
+            | _ when d = minDist -> (d, i :: minDistPoints)
             | _ when d < minDist -> (d, [i])
             | _                  -> (minDist, minDistPoints)
 
@@ -82,6 +82,7 @@ module Day06
         |> List.length
 
     let show () =
-        printfn "Day 6:"
-        printfn "   Part 1: %A (4342)" (part1 ())
-        printfn "   Part 2: %A (42966)" (part2 ())
+        showDay
+            6
+            part1 (Some 4342)
+            part2 (Some 42966)

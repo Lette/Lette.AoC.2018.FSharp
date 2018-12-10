@@ -1,5 +1,6 @@
 module Day05
     open System
+    open Common
 
     let xs = Day05Data.d |> Seq.toList
 
@@ -44,6 +45,7 @@ module Day05
         |> List.min
 
     let show () =
-        printfn "Day 5:"
-        printfn "   Part 1: %A (11476)" (part1 ())
-        printfn "   Part 2: %A (5446)" (part2 ())
+        showDay
+            5
+            part1 (Some 11476)
+            part2 (Some 5446)

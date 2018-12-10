@@ -100,6 +100,7 @@ module Day04
         |> Option.defaultValue -1
         
     let show () =
-        printfn "Day 4:"
-        printfn "   Part 1: %A (11367)" (part1 ())
-        printfn "   Part 2: %A (36896)" (part2 ())
+        showDay
+            4
+            part1 (Some 11367)
+            part2 (Some 36896)

@@ -1,4 +1,4 @@
-﻿[<EntryPoint>]
+[<EntryPoint>]
 let main argv =
 
     //Day01.show ()
@@ -10,6 +10,7 @@ let main argv =
     //Day07.show ()
     //Day08.show ()
     //Day09.show ()
-    Day10.show ()
-
+    //Day10.show ()
+    Day11.show ()
+    
     0

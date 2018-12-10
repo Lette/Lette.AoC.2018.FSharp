@@ -1,5 +1,6 @@
 module Day01
     open System
+    open Common
 
     let xs =
         Day01Data.d.Split Environment.NewLine
@@ -36,6 +37,7 @@ module Day01
         |> findFirstDuplicate
 
     let show () =
-        printfn "Day 1:"    
-        printfn "   Part 1: %i" (part1 ())
-        printfn "   Part 2: %i" (part2 ())
+        showDay
+            1
+            part1 (Some 505)
+            part2 (Some 72330)

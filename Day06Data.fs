@@ -1,8 +1,5 @@
 module Day06Data
 
-    let d'' = "1, 1
-9, 1"
-
     let d' =
         @"1, 1
 1, 6

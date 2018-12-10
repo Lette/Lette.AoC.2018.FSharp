@@ -1,6 +1,7 @@
 module Day03
     open System
     open System.Text.RegularExpressions
+    open Common
 
     type Claim = {
         Id : int
@@ -57,8 +58,10 @@ module Day03
         |> List.find (fun claim ->
             toSingleSquareClaims claim
             |> List.forall (fun square -> List.contains square squaresSinglyClaimed))
+        |> (fun c -> c.Id)
 
     let show () =
-        printfn "Day 3:"
-        printfn "   Part 1: %A" (part1 ())
-        printfn "   Part 2: %A" (part2 ())
+        showDay
+            3
+            part1 (Some 100261)
+            part2 (Some 251)
