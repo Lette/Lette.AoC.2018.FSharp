@@ -1,58 +1,74 @@
 module Day11
     open Common
 
+    let size = 300
+
     let toPowerLevel serial x y =
         let x' = x + 1
         let y' = y + 1
         let rackId = x' + 10
         (((rackId * y' + serial) * rackId) % 1000) / 100 - 5
 
+    let getPartialSum (arr : (int * int) [,]) x y  =
+        match x, y with
+        | -1, _  -> 0
+        | _,  -1 -> 0
+        | _      -> arr.[x, y] |> snd
+
+    let getSumforSquare arr s x y =
+        let x1 = x - 1
+        let x2 = x + s - 1
+        let y1 = y - 1
+        let y2 = y + s - 1
+
+        let f = getPartialSum arr
+
+        let ul = f x1 y1
+        let ur = f x2 y1
+        let ll = f x1 y2
+        let lr = f x2 y2
+
+        lr - ll - ur + ul
+
     let xs =
-        Array2D.init 300 300 (toPowerLevel Day11Data.d)
+        lazy (
+            let arr = Array2D.create size size (0, 0)
+            let toPowerLevel' = toPowerLevel Day11Data.d
+            let getSumForSquare' = getSumforSquare arr 1
+            for x = 0 to (size - 1) do
+                for y = 0 to (size - 1) do
+                    let l = toPowerLevel' x y
+                    let s = l - (getSumForSquare' x y)
+                    arr.[x, y] <- (l, s)
+            arr
+        )
 
-    let subGridTotal x y z =
-        let mutable sum = 0
-        for a = x to (x+(z-1)) do
-            for b = y to (y+(z-1)) do
-                sum <- sum + xs.[a, b]
-        sum
-
-        // seq {
-        //     for a in x .. (x+(z-1)) do
-        //     for b in y .. (y+(z-1)) do
-        //         yield xs.[a, b] }
-        // |> Seq.sum
-
-    let t4fourth (_, _, _, x) = x
-
-    let findMaxBySize n =
+    let findMaxForSize n arr =
+        let getSumForSquare' = getSumforSquare arr n
         seq {
-            for x in 0 .. (300 - n) do
-            for y in 0 .. (300 - n) do
-                yield (x, y, n, subGridTotal x y n) }
-        |> Seq.maxBy t4fourth
+            for x = 0 to (size - n) do
+                for y = 0 to (size - n) do
+                    yield (x, y, n, getSumForSquare' x y) }
+        |> Seq.maxBy (fun (_, _, _, x) -> x)
 
     let part1 () =
-
-        findMaxBySize 3
+        xs.Value
+        |> findMaxForSize 3
         |> (fun (x, y, _, _) -> sprintf "%i,%i" (x + 1) (y + 1))
 
     let part2 () =
-
-        let rec inner n acc =
-            if n = 301 then
-                acc
-            else
-                let m = (findMaxBySize n)
-                //printfn "%i: %A" n m
-                if t4fourth m < 0 then  // <-- Totally arbitrary exit condition!
+        let findMaxForEachSize arr =
+            let rec inner n acc =
+                if n = size + 1 then
                     acc
                 else
-                    inner (n + 1) (m :: acc)
-        
-        inner 1 []
-        |> List.maxBy t4fourth
-        |> (fun (x, y, z, _) -> sprintf "%i,%i,%i" (x + 1) (y + 1) z)
+                    inner (n + 1) (findMaxForSize n arr :: acc)
+            inner 1 []
+
+        xs.Value
+        |> findMaxForEachSize
+        |> List.maxBy (fun (_, _, _, x) -> x)
+        |> (fun (x, y, s, _) -> sprintf "%i,%i,%i" (x + 1) (y + 1) s)
 
     let show () =
         showDay
