@@ -1,4 +1,3 @@
 module Day11Data
 
-    let d =
-        @""
+    let d = 7315
