@@ -9,6 +9,24 @@ module Day11
         let rackId = x' + 10
         (((rackId * y' + serial) * rackId) % 1000) / 100 - 5
 
+    let div100 = flip (/) 100
+    let mod10 = flip (%) 10
+    let hundredsDigit = div100 >> mod10
+    let subtract = flip (-)
+
+    let toPowerLevelPointless =
+        (fun a ->
+            (+) 11 >>
+            (fun b -> 
+                (+) 1
+                >> (*) b
+                >> (+) a
+                >> (*) b
+                >> hundredsDigit
+                >> subtract 5
+            )
+        )
+
     let getPartialSum (arr : (int * int) [,]) x y  =
         match x, y with
         | -1, _  -> 0
@@ -33,7 +51,7 @@ module Day11
     let xs =
         lazy (
             let arr = Array2D.create size size (0, 0)
-            let toPowerLevel' = toPowerLevel Day11Data.d
+            let toPowerLevel' = toPowerLevelPointless Day11Data.d
             let getSumForSquare' = getSumforSquare arr 1
             for x = 0 to (size - 1) do
                 for y = 0 to (size - 1) do
