@@ -3,19 +3,24 @@ module Day09
 
     let pattern = @"(\d+) players; last marble is worth (\d+) points"
 
-    let (nPlayers, maxMarble) =
+    let nPlayers, maxMarble =
         match Day09Data.d with
-        | Regex pattern [p; m] -> (int p, int m)
-        | _ -> failwith "could not parse input"
+        | Regex pattern [p; m] -> int p, int m
+        | _                    -> failwith "could not parse input"
 
-    [<AllowNullLiteralAttribute>]
+    [<AllowNullLiteral>]
     type Cell =
         val mutable public Prev : Cell
         val public Marble : int
         val mutable public Next : Cell
         new (m) = { Prev = null; Marble = m; Next = null }
         new (p, m, n) = { Prev = p; Marble = m; Next = n }
-
+        static member createSelfReferencing m =
+            let cell = new Cell (m)
+            cell.Prev <- cell
+            cell.Next <- cell
+            cell
+ 
     let addAfter (current : Cell) m =
         let before = current
         let after = current.Next
@@ -43,19 +48,13 @@ module Day09
         else
             stepForward (n - 1) (current.Next)
 
-    let createStartMarble n =
-        let startingMarble = new Cell (n)
-        startingMarble.Prev <- startingMarble
-        startingMarble.Next <- startingMarble
-        startingMarble
-
     let addToScore (players : bigint array) player score =
         players.[player] <- players.[player] + score
 
-    let runMoves n current players maxMarble=
+    let runMoves maxMarble players =
         let rec inner n current =
             if n > maxMarble then
-                ()
+                players
             else
                 if n % 23 = 0 then
                     let c = stepBack 7 current
@@ -64,17 +63,22 @@ module Day09
                 else
                     let c = stepForward 1 current
                     inner (n + 1) (addAfter c n)
-        inner n current
+
+        let startingMarble = Cell.createSelfReferencing 0
+        inner 1 startingMarble
+
+    let createPlayers n =
+        Array.create n 0I
 
     let part1 () =
-        let players = Array.create nPlayers 0I
-        runMoves 1 (createStartMarble 0) players maxMarble
-        players |> Array.max
+        createPlayers nPlayers
+        |> runMoves maxMarble
+        |> Array.max
 
     let part2 () =
-        let players = Array.create nPlayers 0I
-        runMoves 1 (createStartMarble 0) players (maxMarble * 100)
-        players |> Array.max
+        createPlayers nPlayers
+        |> runMoves (maxMarble * 100)
+        |> Array.max
 
     let show () =
         showDay
