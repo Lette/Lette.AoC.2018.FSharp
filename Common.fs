@@ -41,3 +41,7 @@ module Common
 
     let flip f a b = f b a
     
+    let joinStrings sep (xs : string seq) =
+        String.Join (sep, xs)
+
+    let joinWithLineBreaks xs = joinStrings Environment.NewLine xs

@@ -2,29 +2,21 @@ module Day10
     open System
     open Common
 
-    let pattern = @"position=< *(-?[0-9]+), *(-?[0-9]+)> velocity=< *(-?[0-9]+), *(-?[0-9]+)>"
+    let pattern = @"position=< *(-?\d+), *(-?\d+)> velocity=< *(-?\d+), *(-?\d+)>"
 
     let toTuple s =
         match s with
         | Regex pattern [x; y; dx; dy] -> (int x, int y, int dx, int dy)
-        | _ -> failwithf "could not parse input: %s" s
+        | _                            -> failwithf "could not parse input: %s" s
 
     let xs =
-        Day10Data.d.Split Environment.NewLine
-        |> Array.toList
-        |> List.map toTuple
+        lazy (
+            Day10Data.d.Split Environment.NewLine
+            |> Array.toList
+            |> List.map toTuple
+        )
 
-
-    let step data =
-        let folder (acc, (minX, minY, maxX, maxY)) (x, y, dx, dy) =
-            let (newX, newY) = (x + dx, y + dy)
-            ((newX, newY, dx, dy) :: acc, (min minX newX, min minY newY, max maxX newX, max maxY newY))
-
-        data
-        |> List.fold folder ([], (999999, 999999, -999999, -999999))
-
-    let createMsg data (x1, y1, x2, y2) =
-
+    let createMsg data x1 y1 x2 y2 =
         let getChar x y cs =
             if (List.contains (x, y) cs) then
                 '#'
@@ -40,28 +32,41 @@ module Day10
 
         List.init sy (fun y -> Array.init sx (fun x -> (getChar x y normalizedPixels)))
         |> List.map (Array.toSeq >> String.Concat)
-        |> List.toArray
-        |> (fun ss -> String.Join (Environment.NewLine, ss))
+        |> joinWithLineBreaks
 
-    let findMessage data =
-        let rec inner n data =
-            if n = 100000 then
+    let findMessage stars =
+        let moveStars stars =
+            let folder (acc, minX, minY, maxX, maxY) (x, y, dx, dy) =
+                let x', y' = x + dx, y + dy
+                (x', y', dx, dy) :: acc,
+                min minX x', min minY y', max maxX x', max maxY y'
+
+            stars
+            |> List.fold folder ([], 999999, 999999, -999999, -999999)
+
+        let rec run stars seconds =
+            if seconds = 100000 then
                 failwith "ran out of time!"
             else
-                let newData, (x1, y1, x2, y2) = step data
+                let newStars, x1, y1, x2, y2 = moveStars stars
                 let dy = y2 - y1
                 if dy < 10 then
-                    let msg = createMsg newData (x1, y1, x2, y2)
-                    (msg, n)
+                    let msg = createMsg newStars x1 y1 x2 y2
+                    (msg, seconds)
                 else
-                    inner (n + 1) newData
-        inner 1 data
+                    run newStars (seconds + 1)
+        run stars 1
 
     let part1 () =
-        Environment.NewLine + (findMessage xs |> fst)
+        xs.Value
+        |> findMessage
+        |> fst
+        |> (+) Environment.NewLine
 
     let part2 () =
-        findMessage xs |> snd
+        xs.Value
+        |> findMessage
+        |> snd
 
     let show () =
         showDay
