@@ -45,3 +45,14 @@ module Common
         String.Join (sep, xs)
 
     let joinWithLineBreaks xs = joinStrings Environment.NewLine xs
+
+    let trim (s : string) = s.Trim ()
+    let rec trimChars (remove : string) (s : string) =
+        if s.StartsWith (remove) then
+            trimChars remove (s.Substring (remove.Length))
+        else if s.EndsWith (remove) then
+            trimChars remove (s.Substring (0, s.Length - remove.Length))
+        else
+            s
+    let splitRows (s : string) = s.Split ([| Environment.NewLine |], StringSplitOptions.None)
+    let replace (oldString : string) (newString : string) (s : string) = s.Replace (oldString, newString)
