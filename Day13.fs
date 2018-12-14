@@ -1,5 +1,4 @@
 module Day13
-    open System
     open Common
 
     type Cell =
@@ -26,14 +25,7 @@ module Day13
             let getRawCell x y =
                 match x, y with
                 | -1, _ -> ' '
-                | _     ->
-                    if y >= input.Length then
-                        printfn "y = %i, len = %i" y input.Length
-
-                    if x >= input.[y].Length then
-                        printfn "x = %i, len = %i" x input.[y].Length
-
-                    input.[y].[x]
+                | _     -> input.[y].[x]
 
             let mutable carts = []
 
@@ -46,8 +38,14 @@ module Day13
                 | _  , '-'  -> WestEast
                 | _  , '|'  -> NorthSouth
                 | '-', '\\' -> SouthWest
+                | '+', '\\' -> SouthWest
+                | '<', '\\' -> SouthWest
+                | '>', '\\' -> SouthWest
                 | _  , '\\' -> NorthEast
                 | '-', '/'  -> NorthWest
+                | '+', '/'  -> NorthWest
+                | '>', '/'  -> NorthWest
+                | '<', '/'  -> NorthWest
                 | _  , '/'  -> SouthEast
                 | _  , '+'  -> Intersection
                 | _  , '^'  ->
@@ -66,9 +64,8 @@ module Day13
 
             let rows = input |> Array.length
             let cols = input |> Seq.map Array.length |> Seq.max
-            printfn "rows = %i; cols = %i" rows cols
 
-            let mine = Array2D.init rows cols createCell
+            let mine = Array2D.init cols rows createCell
 
             (mine, carts)
         )
@@ -125,15 +122,105 @@ module Day13
     let update cart =
         cart |> move |> turn'
 
+    let getCartPosition { X = x; Y = y } =
+        (x, y)
+
+    let showCarts carts =
+        let getMineChar =
+            function
+            | Empty        -> ' '
+            | NorthSouth   -> '|'
+            | WestEast     -> '-'
+            | Intersection -> '+'
+            | NorthEast    -> '\\'
+            | SouthEast    -> '/'
+            | SouthWest    -> '\\'
+            | NorthWest    -> '/'
+
+        let getCartChar { Facing = heading } =
+            match heading with
+            | North -> '^'
+            | East  -> '>'
+            | South -> 'v'
+            | West  -> '<'
+
+        let mine = initialState.Value |> fst
+
+        let getChar x y =
+            carts
+            |> List.tryFind (fun c -> c.X = x && c.Y = y)
+            |> Option.map getCartChar
+            |> Option.defaultValue (getMineChar mine.[x, y])
+
+        printfn ""
+        for y = 0 to Array2D.length2 mine - 1 do
+            for x = 0 to Array2D.length1 mine - 1 do
+                printf "%c" (getChar x y)
+            printfn ""
+        printfn ""
+    
+    let sort carts =
+        carts |> List.sortBy (fun cart -> cart.Y, cart.X)
+
     let part1 () =
-        let carts = initialState.Value |> snd
-        carts
+        let rec tick carts acc crash =
+            match crash with
+            | Some pos -> pos
+            | None ->
+                match carts with
+                | [] ->
+                    //showCarts acc
+                    tick (sort acc) [] None
+                | cart :: carts' ->
+                    let cart' = update cart
+                    let crash =
+                        ((cart' :: carts') @ acc)
+                        |> List.map getCartPosition
+                        |> List.groupBy id
+                        |> List.tryFind (fun (_, v) -> List.length v > 1) 
+                        |> Option.map (fun (k, _) -> k)
+
+                    tick carts' (cart' :: acc) crash
+
+        let initialCarts = initialState.Value |> snd |> sort
+
+        //showCarts carts
+        tick initialCarts [] None
+        |> (fun (x, y) -> sprintf "%i,%i" x y)
 
     let part2 () =
-        0
+        let rec tick carts acc crash =
+            match crash with
+            | Some pos ->
+                let carts' = carts |> List.filter (fun c -> (c.X, c.Y) <> pos)
+                let acc' = acc |> List.filter (fun c -> (c.X, c.Y) <> pos)
+                tick carts' acc' None
+            | None ->
+                match carts with
+                | [] ->
+                    //showCarts acc
+                    match acc with
+                    | [c] -> (c.X, c.Y)
+                    | _ -> tick (sort acc) [] None
+                | cart :: carts' ->
+                    let cart' = update cart
+                    let crash =
+                        ((cart' :: carts') @ acc)
+                        |> List.map getCartPosition
+                        |> List.groupBy id
+                        |> List.tryFind (fun (_, v) -> List.length v > 1) 
+                        |> Option.map (fun (k, _) -> k)
+
+                    tick carts' (cart' :: acc) crash
+
+        let initialCarts = initialState.Value |> snd |> sort
+
+        //showCarts carts
+        tick initialCarts [] None
+        |> (fun (x, y) -> sprintf "%i,%i" x y)
 
     let show () =
         showDay
             13
-            part1 None
-            part2 None
+            part1 (Some "16,45")
+            part2 (Some "21,91")
