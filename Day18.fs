@@ -20,7 +20,7 @@ module Day18
 
     let getAdjacentCells map x y =
         let getCell' = getCell map
-        
+
         [
             getCell' (x - 1) (y - 1)
             getCell' (x) (y - 1)
@@ -62,17 +62,30 @@ module Day18
 
         woodedAcres * lumberyards
 
-    let rec run map n =
+    let rec run map n cache =
+
         match n with
-        | 0 -> map
+        | 0 -> (map, n, None)
         | _ ->
             let map' = tick map
-            
-            run map' (n - 1)
+            let existing = cache |> List.tryFind (fun (map, _) -> map = map')
+
+            match existing with
+            | None                        -> run map' (n - 1) ((map', n) :: cache)
+            | Some (_, previousIteration) -> (map', n, Some (previousIteration, cache))
 
     let runAll n =
-        run initialMap n
-        |> product
+        let finalMap, finalIteration, repetition = run initialMap n List.empty
+
+        let map =
+            match repetition with
+            | None                            -> finalMap
+            | Some (previousIteration, cache) ->
+                cache
+                |> List.find (fun (map, ix) -> ix = 1 + previousIteration - (finalIteration % (previousIteration - finalIteration)))
+                |> fst
+
+        map |> product
 
     let part1 () =
         runAll 10
@@ -84,4 +97,4 @@ module Day18
         showDay
             18
             part1 (Some 588436)
-            part2 None
+            part2 (Some 195290)
