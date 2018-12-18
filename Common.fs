@@ -56,3 +56,7 @@ module Common
             s
     let splitRows (s : string) = s.Split ([| Environment.NewLine |], StringSplitOptions.None)
     let replace (oldString : string) (newString : string) (s : string) = s.Replace (oldString, newString)
+
+    let consoleClear () = System.Console.Clear ()
+    let consoleHome () = System.Console.SetCursorPosition (0, 0)
+    let sleep (milliseconds : int) = System.Threading.Thread.Sleep milliseconds
