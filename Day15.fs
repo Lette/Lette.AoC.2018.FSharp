@@ -80,52 +80,53 @@ module Day15
     let getAdjacentCoords { X = x; Y = y } =
         [(x, y - 1); (x - 1, y); (x + 1, y); (x, y + 1)]
 
-    let createDistanceMap (map : char [,]) () =
+    let createDistanceMap (map : Cell [,]) () =
         Array2D.create (map |> Array2D.length1) (map |> Array2D.length2) None
 
-    let createDistanceMap' =
+    let createDistanceMap' () =
         let (map, _) = initialData.Value
         createDistanceMap map
 
-    let findClosestTarget { X = x; Y = y} targets =
-        let ds = 
+    // let findClosestTarget { X = x; Y = y} targets =
+    //     let ds = createDistanceMap' ()
+    //     ds.[x, y] <- Some 0
 
-    let move creature creatures =
+    let move (map : Cell [,]) creature creatures =
         let opps = creatures |> List.filter (fun c -> c.Type <> creature.Type)
         let targetSquares =
             opps
             |> List.map getAdjacentCoords
             |> List.concat
-            |> List.filter (fun (x, y) -> cellIsEmpty x y )
+            |> List.filter (fun (x, y) -> cellIsEmpty map.[x, y])
 
         if targetSquares |> List.isEmpty then
             creature
         else
-            let closestTargetOption = findClosestTarget creature targetSquares
-
-
+            creature
+            //let closestTargetOption = findClosestTarget creature targetSquares
 
     let part1 () =
         let (map, creatures) = initialData.Value
     
-        let rec step creatures creaturesDone round =
+        let rec step map creatures creaturesDone round =
             printMap map
             match creatures, creaturesDone with
             | [], _ ->
-                if isSameType creaturesDone then
-                    round, creaturesDone
-                else
-                    step (sort creaturesDone) [] (round + 1)
+                round, creaturesDone
+                // if isSameType creaturesDone then
+                //     round, creaturesDone
+                // else
+                //     step map (sort creaturesDone) [] (round + 1)
             | c :: cs, ds ->
 
-                let c' = move c
+                //let c' = move c
                 // do stuff with c
-                let targets = getTargets c
+                //let targets = getTargets c
                 // and update cs ds and map
 
-                step cs (c :: ds) round
+                step map cs (c :: ds) round
 
-        step (sort creatures) [] 1
+        step map (sort creatures) [] 1
         |> fun (r, cs) -> (r - 1) * (cs |> List.sumBy (fun { Hitpoints = p } -> p))
 
     let part2 () =
