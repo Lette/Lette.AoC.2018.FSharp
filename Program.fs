@@ -14,6 +14,7 @@ let main argv =
     //Day11.show ()
     //Day12.show ()
     //Day13.show ()
-    Day14.show ()
+    //Day14.show ()
+    Day18.show ()
     
     0
