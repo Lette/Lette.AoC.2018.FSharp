@@ -48,13 +48,13 @@ module Day15
     let printCreatureSummary creatures =
         creatures
         |> List.groupBy (fun { Type = t } -> t)
-        |> List.sortBy (fun (k, _) -> k)
-        |> List.iter (fun (k, vs) ->
+        |> List.sortBy (fun (t, _) -> t)
+        |> List.iter (fun (t, cs) ->
             printfn
                 "%A:\t%i\t%i"
-                k
-                (vs |> List.sumBy (fun v -> v.Hitpoints))
-                (vs |> List.length)
+                t
+                (cs |> List.sumBy (fun c -> c.Hitpoints))
+                (cs |> List.length)
             )
 
     let printMap map creatures =
@@ -134,7 +134,7 @@ module Day15
         |> List.concat
         |> List.filter (flip (||>) (coordinateIsEmpty map))
 
-    let rec fillMap map dmap candidates dist =
+    let rec fillMap map distanceMap candidates dist =
         let rec fillDist map dmap candidates dist acc =
             match candidates with
             | [] -> acc
@@ -150,18 +150,18 @@ module Day15
         match candidates with
         | [] -> ()
         | _ ->
-            let candidates' = fillDist map dmap candidates dist []
-            fillMap map dmap candidates' (dist + 1)
+            let candidates' = fillDist map distanceMap candidates dist []
+            fillMap map distanceMap candidates' (dist + 1)
 
     let findClosestRoute map startCoordinate targetCoordinates =
-        let dmap = createDistanceMap map
+        let distanceMap = createDistanceMap map
         let (x0, y0) = startCoordinate
-        Array2D.set dmap x0 y0 (Some 0)
+        Array2D.set distanceMap x0 y0 (Some 0)
 
-        fillMap map dmap (adjacentCoords (x0, y0)) 1
+        fillMap map distanceMap (adjacentCoords (x0, y0)) 1
 
         targetCoordinates
-        |> List.map (fun (x, y) -> (x, y, Array2D.get dmap x y))
+        |> List.map (fun (x, y) -> (x, y, Array2D.get distanceMap x y))
         |> List.filter (fun (_, _, d)-> Option.isSome d)
         |> List.map (fun (x, y, d) -> (x, y, Option.get d))
         |> List.sortBy (fun (x, y, d) -> (d, y, x))
