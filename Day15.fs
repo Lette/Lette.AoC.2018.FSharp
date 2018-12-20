@@ -51,14 +51,18 @@ module Day15
         |> List.sortBy (fun (t, _) -> t)
         |> List.iter (fun (t, cs) ->
             printfn
-                "%A:\t%i\t%i"
+                "%A: %i %i %A            "
                 t
                 (cs |> List.sumBy (fun c -> c.Hitpoints))
                 (cs |> List.length)
+                (cs |> List.map (fun c -> c.Hitpoints))
             )
+        printfn "                      "
+        printfn "                      "
 
-    let printMap map creatures =
+    let printMap map creatures round =
         consoleHome ()
+        printfn "Round: %i" round
         printfn ""
         for y = 0 to (Array2D.length2 map) - 1 do
             for x = 0 to (Array2D.length1 map) - 1 do
@@ -72,6 +76,7 @@ module Day15
         printfn ""
         printCreatureSummary creatures
         sleep 50
+        //System.Console.ReadKey true |> ignore
         ()
 
     let printDistMap dmap =
@@ -188,6 +193,11 @@ module Day15
         | Creature { Type = t } when t = creatureType -> true
         | _                                           -> false
 
+    let creatureFromCell =
+        function
+        | Creature creature -> creature
+        | _                 -> failwith "not a creature!"
+
     let isNextToEnemy map creature =
         let enemyType = creature |> otherType
         creature
@@ -201,43 +211,85 @@ module Day15
         Array2D.set map x y (Creature creature')
         creature'
 
-    let move map creature creatures =
+    let move map creature creaturesTodo creaturesDone =
         if isNextToEnemy map creature then
-            creature
+            creature, creaturesTodo, creaturesDone
         else
-            creatures
+            (creaturesTodo @ creaturesDone)
             |> findEnemiesOf (creature |> otherType)
             |> findMoveTargets map
             |> findClosestMoveTarget map creature
             |> Option.map (findFirstStepOfClosestRoute map creature)
             |> Option.map (moveTo map creature)
             |> Option.defaultValue creature
+            |> fun c -> c, creaturesTodo, creaturesDone
+
+    let attackEnemy map creature creaturesTodo creaturesDone enemy =
+        let enemy' =
+            enemy
+            |> fun c -> { c with Hitpoints = c.Hitpoints - 3 }
+        
+        if enemy'.Hitpoints <= 0 then
+            let creaturesTodo' = creaturesTodo |> List.filter (fun c -> c <> enemy)
+            let creaturesDone' = creaturesDone |> List.filter (fun c -> c <> enemy)
+            Array2D.set map enemy.X enemy.Y Empty
+            creature, creaturesTodo', creaturesDone'
+        else
+            let replaceCreature cs oldCreature newCreature =
+                if cs |> List.contains oldCreature then
+                    newCreature :: (cs |> List.filter (fun c -> c <> oldCreature))
+                else
+                    cs
+
+            let creaturesTodo' = replaceCreature creaturesTodo enemy enemy' |> sort
+            let creaturesDone' = replaceCreature creaturesDone enemy enemy'
+            Array2D.set map enemy.X enemy.Y (Creature enemy')
+            creature, creaturesTodo', creaturesDone'
+            
+    let attack map creature creaturesTodo creaturesDone =
+        creature
+        |> adjacentCells map
+        |> List.filter (fun c -> isCreatureOf (creature |> otherType) c)
+        |> List.map (creatureFromCell)
+        |> List.sortBy (fun c -> (c.Hitpoints, c.Y, c.X))
+        |> List.tryHead
+        |> Option.map (attackEnemy map creature creaturesTodo creaturesDone)
+        |> Option.defaultValue (creature, creaturesTodo, creaturesDone)
 
     let rec run map creatures creaturesDone round =
         match creatures, creaturesDone with
         | [], _ ->
+            printMap map creaturesDone round
             if isSameType creaturesDone then
                 round, creaturesDone
             else
-                printMap map creaturesDone
                 run map (sort creaturesDone) [] (round + 1)
         | c :: cs, ds ->
+            let allCreatures = creatures @ creaturesDone
+            if isSameType allCreatures then
+                printMap map allCreatures round
+                (round - 1), allCreatures
+            else
+                let c', cs', ds' =
+                    (c, cs, ds)
+                    |||> move map
+                    |||> attack map
 
-            let c' = move map c (cs @ ds)
-
-            run map cs (c' :: ds) round
+                run map cs' (c' :: ds') round
 
     let runAll map creatures =
         consoleClear ()
-        printMap map creatures
+        printMap map creatures 0
         run map (sort creatures) [] 1
 
     let outcome finalRound remainingCreatures =
-        (finalRound - 1) * (remainingCreatures |> List.sumBy (fun { Hitpoints = p } -> p))
+        (finalRound) * (remainingCreatures |> List.sumBy (fun { Hitpoints = p } -> p))
 
     let part1 () =
         let (map, creatures) = initialData.Value
-        runAll map creatures ||> outcome
+        let (i, cs) = runAll map creatures
+        printfn "Final full round: %i" i
+        (i, cs) ||> outcome
 
     let part2 () =
         0
@@ -245,5 +297,5 @@ module Day15
     let show () =
         showDay
             15
-            part1 None
+            part1 (Some 179968)
             part2 None
