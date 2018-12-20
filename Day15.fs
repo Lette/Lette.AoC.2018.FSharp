@@ -11,39 +11,37 @@ module Day15
     | Wall
     | Creature of Creature
 
-    let initialData =
-        lazy (
-            let input =
-                Day15Data.d
-                |> splitRows
-                |> Array.map Seq.toArray
+    let initialData () =
+        let input =
+            Day15Data.d
+            |> splitRows
+            |> Array.map Seq.toArray
 
-            let getRawCell x y =
-                match x, y with
-                | -1, _ -> ' '
-                | _     -> input.[y].[x]
+        let getRawCell x y =
+            match x, y with
+            | -1, _ -> ' '
+            | _     -> input.[y].[x]
 
-            let mutable creatures = []
+        let mutable creatures = []
 
-            let createCell x y =
-                match getRawCell x y with
-                | '#' -> Wall
-                | '.' -> Empty
-                | 'E' ->
-                    let creature = createElf x y
-                    creatures <- creature :: creatures
-                    Creature creature
-                | 'G' ->
-                    let creature = createGoblin x y
-                    creatures <- creature :: creatures
-                    Creature creature
-                | c   -> failwithf "could not parse input: %A" c
+        let createCell x y =
+            match getRawCell x y with
+            | '#' -> Wall
+            | '.' -> Empty
+            | 'E' ->
+                let creature = createElf x y
+                creatures <- creature :: creatures
+                Creature creature
+            | 'G' ->
+                let creature = createGoblin x y
+                creatures <- creature :: creatures
+                Creature creature
+            | c   -> failwithf "could not parse input: %A" c
 
-            let rows = input |> Array.length
-            let cols = input |> Seq.map Array.length |> Seq.max
+        let rows = input |> Array.length
+        let cols = input |> Seq.map Array.length |> Seq.max
 
-            (Array2D.init cols rows createCell), creatures
-        )
+        (Array2D.init cols rows createCell), creatures
 
     let printCreatureSummary creatures =
         creatures
@@ -75,7 +73,7 @@ module Day15
             printfn ""
         printfn ""
         printCreatureSummary creatures
-        sleep 50
+        sleep 10
         //System.Console.ReadKey true |> ignore
         ()
 
@@ -224,10 +222,10 @@ module Day15
             |> Option.defaultValue creature
             |> fun c -> c, creaturesTodo, creaturesDone
 
-    let attackEnemy map creature creaturesTodo creaturesDone enemy =
+    let attackEnemy map creature creaturesTodo creaturesDone elfPower enemy =
         let enemy' =
             enemy
-            |> fun c -> { c with Hitpoints = c.Hitpoints - 3 }
+            |> fun c -> { c with Hitpoints = c.Hitpoints - (if isElf creature then elfPower else 3) }
         
         if enemy'.Hitpoints <= 0 then
             let creaturesTodo' = creaturesTodo |> List.filter (fun c -> c <> enemy)
@@ -246,56 +244,59 @@ module Day15
             Array2D.set map enemy.X enemy.Y (Creature enemy')
             creature, creaturesTodo', creaturesDone'
             
-    let attack map creature creaturesTodo creaturesDone =
+    let attack map elfPower creature creaturesTodo creaturesDone =
         creature
         |> adjacentCells map
         |> List.filter (fun c -> isCreatureOf (creature |> otherType) c)
         |> List.map (creatureFromCell)
         |> List.sortBy (fun c -> (c.Hitpoints, c.Y, c.X))
         |> List.tryHead
-        |> Option.map (attackEnemy map creature creaturesTodo creaturesDone)
+        |> Option.map (attackEnemy map creature creaturesTodo creaturesDone elfPower)
         |> Option.defaultValue (creature, creaturesTodo, creaturesDone)
 
-    let rec run map creatures creaturesDone round =
+    let rec run map creatures creaturesDone round elfPower =
         match creatures, creaturesDone with
         | [], _ ->
-            printMap map creaturesDone round
+            //printMap map creaturesDone round
             if isSameType creaturesDone then
                 round, creaturesDone
             else
-                run map (sort creaturesDone) [] (round + 1)
+                run map (sort creaturesDone) [] (round + 1) elfPower
         | c :: cs, ds ->
             let allCreatures = creatures @ creaturesDone
             if isSameType allCreatures then
-                printMap map allCreatures round
+                //printMap map allCreatures round
                 (round - 1), allCreatures
             else
                 let c', cs', ds' =
                     (c, cs, ds)
                     |||> move map
-                    |||> attack map
+                    |||> attack map elfPower
 
-                run map cs' (c' :: ds') round
+                run map cs' (c' :: ds') round elfPower
 
-    let runAll map creatures =
-        consoleClear ()
-        printMap map creatures 0
-        run map (sort creatures) [] 1
+    let runAll map creatures elfPower =
+        //consoleClear ()
+        //printMap map creatures 0
+        run map (sort creatures) [] 1 elfPower
 
     let outcome finalRound remainingCreatures =
         (finalRound) * (remainingCreatures |> List.sumBy (fun { Hitpoints = p } -> p))
 
     let part1 () =
-        let (map, creatures) = initialData.Value
-        let (i, cs) = runAll map creatures
-        printfn "Final full round: %i" i
+        let (map, creatures) = initialData ()
+        let (i, cs) = runAll map creatures 3
+        //printfn "Final full round: %i" i
         (i, cs) ||> outcome
 
     let part2 () =
-        0
+        let (map, creatures) = initialData ()
+        let (i, cs) = runAll map creatures 20  // totally experimental - needs rework
+        //printfn "Final full round: %i" i
+        (i, cs) ||> outcome
 
     let show () =
         showDay
             15
             part1 (Some 179968)
-            part2 None
+            part2 (Some 42098)
