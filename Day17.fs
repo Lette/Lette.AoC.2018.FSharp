@@ -44,14 +44,15 @@ module Day17
     let showMap (map : char [] []) =
         map
         |> Array.iter (Seq.ofArray >> String.Concat >> printfn "%s")
-
         printfn ""
         printfn "water: %A" (countWater map)
+        map
 
     let showMap' map =
-        System.Console.Clear ()
-        showMap map
-        sleep 250
+        //System.Console.Clear ()
+        //showMap map
+        //sleep 150
+        ()
 
     let set map x y c =
         Array.set (Array.get map (y - yMin)) (x - xMin) c
@@ -83,6 +84,7 @@ module Day17
 
     let fillWithStandingWater map x y =
         let rec fill x y f =
+            showMap' map
             match get map x y with
             | '#' -> ()
             | _   ->
@@ -103,7 +105,9 @@ module Day17
             let setAndContinue x y =
                 set map x y '|'
                 fill (f x 1) y f
-
+            
+            showMap' map
+            
             match get map x y, below map x y with
             | '#', _ -> []
             | _  , '#' -> setAndContinue x y
@@ -135,29 +139,27 @@ module Day17
         | _        -> failwith "shouldn't happen"
 
     let rec runMap waters map =
-        //showMap' map
+        showMap' map
         match waters with
         | [] -> map
         | w :: ws -> runMap (ws @ (runWater map w)) map
-        
-    let part1 () =
+
+    let run () =
         createMap ()
         |> addClay xs
         |> (fun map ->
             set map 500 yMin '|'
             map)
         |> runMap [(500, yMin)]
+        //|> showMap
         |> countWater
+        
+    let part1 () =
+        run ()
         |> fst
 
     let part2 () =
-        createMap ()
-        |> addClay xs
-        |> (fun map ->
-            set map 500 yMin '|'
-            map)
-        |> runMap [(500, yMin)]
-        |> countWater
+        run ()
         |> snd
 
     let show () =
