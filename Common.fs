@@ -60,3 +60,20 @@ module Common
     let consoleClear () = System.Console.Clear ()
     let consoleHome () = System.Console.SetCursorPosition (0, 0)
     let sleep (milliseconds : int) = System.Threading.Thread.Sleep milliseconds
+
+    let divisors n =
+        let rec inner n xs k limit =
+            seq {
+                if k > limit then
+                    yield! xs
+                else
+                    if n % k = 0 then
+                        yield k
+                        if k = limit then
+                            yield! inner n xs (k + 1) limit
+                        else
+                            yield! inner n ((n / k) :: xs) (k + 1) limit
+                    else
+                        yield! inner n xs (k + 1) limit
+            }
+        inner n [] 1 (int (sqrt (float n)))

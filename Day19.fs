@@ -12,10 +12,10 @@ module Day19
 
     let toInstruction =
         function
-        | Regex instructionPattern [ instr; a; b; c ] -> (instr, int64 a, int64 b, int c)
+        | Regex instructionPattern [ instr; a; b; c ] -> (instr, int a, int b, int c)
         | s -> failwithf "could not parse input: %s" s
 
-    let createZeroDevice () = Array.create 6 0L
+    let createZeroDevice () = Array.create 6 0
 
     let setRegister register value device =
         let device' = Array.copy device
@@ -40,12 +40,12 @@ module Day19
                     |> toConfig
 
                 let value    v _      = v
-                let register r device = Array.get device (int r)
-                let unused   _ _      = 0L
+                let register r device = Array.get device r
+                let unused   _ _      = 0
 
                 let first a _ = a
-                let gt a b = if a > b then 1L else 0L
-                let eq a b  = if a = b then 1L else 0L
+                let gt a b = if a > b then 1 else 0
+                let eq a b  = if a = b then 1 else 0
 
                 let opcodes =
                     [
@@ -91,12 +91,12 @@ module Day19
 
     let rec step config instructions device =
         //printfn "%A" (device)
-        let ip = getRegister config device + 1L
+        let ip = getRegister config device + 1
 
-        if (int ip) >= Array.length instructions then
+        if ip >= Array.length instructions then
             device
         else
-            let instruction = Array.get instructions (int ip)
+            let instruction = Array.get instructions ip
 
             device
             |> setRegister config ip
@@ -107,17 +107,18 @@ module Day19
         let (config, instructions) = initialData.Value
         
         createZeroDevice ()
-        |> setRegister config -1L
+        |> setRegister config -1
         |> step config instructions
         |> getRegister 0
 
     let part2 () =
 
-        // sum of divisors of 10551364
-        18964204L
+        10551364
+        |> divisors
+        |> Seq.sum
 
     let show () =
         showDay
             19
-            part1 (Some 1694L)
-            part2 (Some 18964204L)
+            part1 (Some 1694)
+            part2 (Some 18964204)
