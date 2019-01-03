@@ -54,7 +54,7 @@ module Common
             trimChars remove (s.Substring (0, s.Length - remove.Length))
         else
             s
-    let splitRows (s : string) = s.Split ([| Environment.NewLine |], StringSplitOptions.None)
+    let splitRows (s : string) = s.Split ([| "\r\n"; "\n" |], StringSplitOptions.None)
     let replace (oldString : string) (newString : string) (s : string) = s.Replace (oldString, newString)
 
     let consoleClear () = System.Console.Clear ()
